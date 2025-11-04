@@ -1,4 +1,6 @@
-﻿namespace BankFunctionsApp.FunctionApp.Models
+﻿using System;
+
+namespace BankFunctionsApp.FunctionApp.Models
 {
     public class Customer
     {

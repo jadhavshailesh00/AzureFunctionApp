@@ -1,48 +1,30 @@
-﻿using Microsoft.Azure.WebJobs;
+﻿using BankFunctionsApp.FunctionApp.Models;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
-namespace BankFunctionsApp.FunctionApp.Functions
+
+
+namespace BankFunctionsApp.Functions;
+
+public class ProcessTransferFunction
 {
-    public static class ProcessTransferFunction
+    private readonly ILogger _logger;
+
+    public ProcessTransferFunction(ILoggerFactory loggerFactory)
     {
-        [FunctionName("ProcessTransfer")]
-        public static async Task Run(
-            [QueueTrigger("fund-transfers", Connection = "AzureWebJobsStorage")] string message,
-            ILogger log)
-        {
-            log.LogInformation("ProcessTransfer triggered.");
-            var transfer = JsonConvert.DeserializeObject<TransferRequest>(message);
+        _logger = loggerFactory.CreateLogger<ProcessTransferFunction>();
+    }
 
-            var loggerFactory = new LoggerFactory();
-            var accountService = new AccountService(loggerFactory);
-            var notify = new NotificationService(loggerFactory);
 
-            try
-            {
-                // NOTE: Real system must implement distributed transaction or ledger, idempotency and audit.
-                var debitOk = await accountService.DebitAsync(transfer.FromAccountId, transfer.Amount);
-                if (!debitOk) throw new Exception("Debit failed");
+    [Function("ProcessTransfer")]
+    public void Run(
+        [QueueTrigger("transactions", Connection = "AzureWebJobsStorage")] string message)
+    {
+        var transfer = JsonConvert.DeserializeObject<TransferRequest>(message);
 
-                var creditOk = await accountService.CreditAsync(transfer.ToAccountId, transfer.Amount);
-                if (!creditOk) throw new Exception("Credit failed");
-
-                // Notify both parties
-                await notify.SendEmailAsync("from@example.com", "Debit Notification", $"Debited {transfer.Amount}");
-                await notify.SendEmailAsync("to@example.com", "Credit Notification", $"Credited {transfer.Amount}");
-
-                log.LogInformation($"Transfer {transfer.TransferId} processed successfully.");
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex, $"Transfer {transfer?.TransferId} failed.");
-                // TODO: move message to poison queue or retry logic
-                throw;
-            }
-        }
+        _logger.LogInformation(
+            $"Processing transfer: {transfer.FromAccountId} -> {transfer.ToAccountId}, Amount: {transfer.Amount}"
+        );
     }
 }

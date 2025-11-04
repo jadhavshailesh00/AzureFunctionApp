@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using BankFunctionsApp.FunctionApp.Models;
+using BankFunctionsApp.FunctionApp.Services;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 
 namespace BankFunctionsApp.FunctionApp.Functions

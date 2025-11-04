@@ -1,40 +1,34 @@
-﻿using BankFunctionsApp.FunctionApp.Models;
-using BankFunctionsApp.FunctionApp.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Functions.Worker;
+﻿using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System.IO;
+using System.Net;
+using System.Threading.Tasks;
 
-namespace BankFunctionsApp.FunctionApp.Functions
+namespace BankFunctionsApp.Functions;
+
+public class RegisterCustomerFunction
 {
-    public static class RegisterCustomerFunction
+    private readonly ILogger _logger;
+
+    public RegisterCustomerFunction(ILoggerFactory loggerFactory)
     {
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "customer/register")] HttpRequest httpRequest,
-            ILogger log)
-        {
-            log.LogInformation("RegisterCustomer called.");
-            try
-            {
-                var requestBody = await new StreamReader(httpRequest.Body).ReadToEndAsync();
-                var customerData = System.Text.Json.JsonSerializer.Deserialize<Customer>(requestBody) ?? new Customer();
+        _logger = loggerFactory.CreateLogger<RegisterCustomerFunction>();
+    }
 
-                if (string.IsNullOrWhiteSpace(customerData.Email))
-                    return new BadRequestObjectResult("Email is required.");
+    [Function("RegisterCustomer")]
+    public async Task<HttpResponseData> Run(
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
+    {
+        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        var data = JsonConvert.DeserializeObject<dynamic>(requestBody);
 
-                var svc = new CustomerService(new LoggerFactory());
-                await svc.SaveCustomerAsync(customerData);
+        _logger.LogInformation($"Customer registered: {data?.name}");
 
-                return new OkObjectResult(new { message = "Customer registered", customerId = customerData.id });
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        await response.WriteStringAsync("Customer registered successfully");
 
-            }
-            catch (Exception ex)
-            {
-                log.LogError($"Error registering customer: {ex.Message}");
-                return new StatusCodeResult(500);
-            }
-
-        );
-        }
+        return response;
     }
 }
