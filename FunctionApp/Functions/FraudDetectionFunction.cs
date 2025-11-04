@@ -1,4 +1,5 @@
 ﻿using BankFunctionsApp.FunctionApp.Models;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

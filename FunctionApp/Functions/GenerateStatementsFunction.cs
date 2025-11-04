@@ -1,7 +1,10 @@
 ﻿using BankFunctionsApp.FunctionApp.Services;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Extensions.Timer;
+using Microsoft.Azure.Functions.Worker;
 
 namespace BankFunctionsApp.FunctionApp.Functions
 {

@@ -3,8 +3,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-
-
 namespace BankFunctionsApp.Functions;
 
 public class ProcessTransferFunction
