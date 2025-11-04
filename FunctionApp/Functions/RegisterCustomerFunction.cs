@@ -37,3 +37,4 @@ namespace BankFunctionsApp.FunctionApp.Functions
         );
         }
     }
+}
